@@ -7,7 +7,7 @@ import (
 )
 
 type IBookRepository interface {
-	New(book *model.Book) error
+	New(book *model.Book) (*model.Book, error)
 	FindAll() ([]*model.Book, error)
 	Update(book *model.Book) error
 	GetByID(id int) (*model.Book, error)
@@ -22,8 +22,12 @@ func NewGormStore(db *gorm.DB) IBookRepository {
 	return &gormStore{db: db}
 }
 
-func (s *gormStore) New(book *model.Book) error {
-	return s.db.Create(book).Error
+func (s *gormStore) New(book *model.Book) (*model.Book, error) {
+	result := s.db.Create(book) // This will add `book` into the database.
+	if result.Error != nil {    // Check for errors during the creation.
+		return nil, result.Error
+	}
+	return book, nil
 }
 
 func (s *gormStore) FindAll() ([]*model.Book, error) {

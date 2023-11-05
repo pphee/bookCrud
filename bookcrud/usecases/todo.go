@@ -22,7 +22,8 @@ func NewBookUsecase(repo repo.IBookRepository) IBookUsecase {
 }
 
 func (u *BookUsecase) CreateBook(book *model.Book) error {
-	return u.repo.New(book)
+	_, err := u.repo.New(book)
+	return err
 }
 
 func (u *BookUsecase) GetAllBooks() ([]*model.Book, error) {

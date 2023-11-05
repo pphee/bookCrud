@@ -9,29 +9,47 @@ import (
 )
 
 type IModuleFactory interface {
-	bookModule()
+	BookModule()
+	Repository() repo.IBookRepository
+	Usecase() usecases.IBookUsecase
+	Handler() handlers.IBookHandler
 }
 
 type moduleFactory struct {
-	r *gin.RouterGroup
-	s *server
+	r          *gin.RouterGroup
+	s          *server
+	repository repo.IBookRepository
+	usecase    usecases.IBookUsecase
+	handler    handlers.IBookHandler
 }
 
 func InitModule(r *gin.RouterGroup, s *server) IModuleFactory {
-	return &moduleFactory{
+	mf := &moduleFactory{
 		r: r,
 		s: s,
 	}
+	bookRepository := repo.NewGormStore(s.db)
+	bookUsecase := usecases.NewBookUsecase(bookRepository)
+	bookHandler := handlers.NewBookHandler(bookUsecase)
+
+	mf.repository = bookRepository
+	mf.usecase = bookUsecase
+	mf.handler = bookHandler
+
+	return mf
 }
 
-func (mf *moduleFactory) bookModule() {
-	gormStore := repo.NewGormStore(mf.s.db)
-	useCases := usecases.NewBookUsecase(gormStore)
-	bookHandlers := handlers.NewBookHandler(useCases)
+func (mf *moduleFactory) BookModule() {
+
 	bookRouter := mf.r.Group("/books")
-	bookRouter.GET("/:id", bookHandlers.GetByID)
-	bookRouter.GET("", bookHandlers.ListBooks)
-	bookRouter.POST("", bookHandlers.CreateBook)
-	bookRouter.PUT("/:id", bookHandlers.UpdateBook)
-	bookRouter.DELETE("/:id", bookHandlers.DeleteBook)
+
+	bookRouter.GET("/:id", mf.handler.GetByID)
+	bookRouter.GET("", mf.handler.ListBooks)
+	bookRouter.POST("", mf.handler.CreateBook)
+	bookRouter.PUT("/:id", mf.handler.UpdateBook)
+	bookRouter.DELETE("/:id", mf.handler.DeleteBook)
 }
+
+func (f *moduleFactory) Repository() repo.IBookRepository { return f.repository }
+func (f *moduleFactory) Usecase() usecases.IBookUsecase   { return f.usecase }
+func (f *moduleFactory) Handler() handlers.IBookHandler   { return f.handler }

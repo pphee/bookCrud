@@ -52,8 +52,8 @@ func (h *bookHandler) CreateBook(c *gin.Context) {
 }
 
 func (h *bookHandler) DeleteBook(c *gin.Context) {
-	idStr := c.Param("id")         // Get the ID as a string
-	id, err := strconv.Atoi(idStr) // Convert the string to an int
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
@@ -75,7 +75,7 @@ func (h *bookHandler) GetByID(c *gin.Context) {
 	}
 	book, err := h.usecase.GetBookByID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -90,6 +90,7 @@ func (h *bookHandler) UpdateBook(c *gin.Context) {
 	}
 
 	idStr := c.Param("id")
+
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid beer ID"})

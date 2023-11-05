@@ -11,6 +11,7 @@ import (
 
 type IServer interface {
 	StartGin()
+	GetServer() *server
 }
 
 type server struct {
@@ -27,10 +28,14 @@ func NewServer(db *gorm.DB) IServer {
 	}
 }
 
+func (s *server) GetServer() *server {
+	return s
+}
+
 func (s *server) StartGin() {
 	api := s.app.Group("/api")
 	modules := InitModule(api, s)
-	modules.bookModule()
+	modules.BookModule()
 	port := ":8080"
 	log.Printf("Server is starting on %v", port)
 
