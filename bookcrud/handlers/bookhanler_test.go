@@ -48,6 +48,7 @@ func (m *mockBookUsecase) UpdateBook(book *model.Book) error {
 }
 
 func TestListBooks(t *testing.T) {
+
 	mockUsecase := new(mockBookUsecase)
 	handler := NewBookHandler(mockUsecase)
 
@@ -85,7 +86,6 @@ func TestListBooks(t *testing.T) {
 			mockUsecase.ExpectedCalls = nil
 			mockUsecase.Calls = nil
 
-			// Setup the mock expectations for this test case
 			mockUsecase.On("GetAllBooks").Return(tc.returnBooks, tc.returnErr).Once()
 
 			w := httptest.NewRecorder()
@@ -96,9 +96,6 @@ func TestListBooks(t *testing.T) {
 			if tc.expectedCode == http.StatusOK {
 				var booksResponse []*model.Book
 				err := json.Unmarshal(w.Body.Bytes(), &booksResponse)
-				for _, book := range booksResponse {
-					fmt.Println(book) // This will call the String method of the Book struct
-				}
 				assert.NoError(t, err)
 				assert.Equal(t, expectedBooks, booksResponse)
 			} else {
@@ -153,14 +150,11 @@ func TestGetBookByID(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.description, func(t *testing.T) {
-			// Set up expectations for mock usecase
 			tc.mockUsecaseFn()
 
-			// Creating the request with the specified bookID
 			req, err := http.NewRequest(http.MethodGet, "/books/"+tc.bookID, nil)
 			assert.NoError(t, err)
 
-			// Record the response
 			rr := httptest.NewRecorder()
 
 			r.ServeHTTP(rr, req)
@@ -300,4 +294,77 @@ func TestCreateBook(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBookUpdateBook(t *testing.T) {
+	mockUsecase := new(mockBookUsecase)
+	h := NewBookHandler(mockUsecase)
+
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		description   string
+		bookID        string
+		requestBody   *model.Book
+		mockUsecaseFn func()
+		expectedCode  int
+		want          string
+	}{
+		{
+			description: "success",
+			bookID:      "1",
+			requestBody: &model.Book{Book: "Updated Text", Author: "Author", Title: "Title"},
+			mockUsecaseFn: func() {
+				mockBook := &model.Book{ID: 1, Book: "Updated Text", Author: "Author", Title: "Title"}
+				mockUsecase.On("GetBookByID", mockBook.ID).Return(mockBook, nil)
+				mockUsecase.On("UpdateBook", mock.Anything).Return(nil)
+			},
+			expectedCode: http.StatusOK,
+			want:         `{"message":"Book updated successfully"}`,
+		},
+		{
+			description: "error",
+			bookID:      "2",
+			mockUsecaseFn: func() {
+				mockBook := &model.Book{ID: 2, Book: "Updated Text", Author: "Author", Title: "Title"}
+				mockUsecase.On("GetBookByID", mockBook.ID).Return(nil, errors.New("error"))
+				mockUsecase.On("UpdateBook", mock.Anything).Return(errors.New("error"))
+			},
+			expectedCode: http.StatusInternalServerError,
+		},
+		{
+			description: "bad request",
+			bookID:      "abc",
+			mockUsecaseFn: func() {
+				mockBook := &model.Book{ID: 1, Book: "Updated Text", Author: "Author", Title: "Title"}
+				mockUsecase.On("GetBookByID", mockBook.ID).Return(mockBook, nil)
+				mockUsecase.On("UpdateBook", mock.Anything).Return(nil)
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			r := gin.Default()
+			r.PUT("/books/:id", h.UpdateBook)
+
+			tt.mockUsecaseFn()
+
+			mockBook := &model.Book{ID: 1, Book: "pee", Author: "dans", Title: "555"}
+			body, _ := json.Marshal(mockBook)
+			req, _ := http.NewRequest(http.MethodPut, "/books/"+tt.bookID, bytes.NewBuffer(body))
+			resp := httptest.NewRecorder()
+			r.ServeHTTP(resp, req)
+
+			assert.Equal(t, tt.expectedCode, resp.Code)
+
+			if resp.Code == http.StatusOK {
+				assert.JSONEq(t, tt.want, resp.Body.String())
+			}
+
+			mockUsecase.AssertExpectations(t)
+		})
+	}
+
 }

@@ -112,5 +112,5 @@ func (h *bookHandler) UpdateBook(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Beer updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Book updated successfully"})
 }
