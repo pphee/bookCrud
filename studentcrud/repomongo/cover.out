@@ -1,0 +1,21 @@
+mode: set
+book/studentcrud/repomongo/mongo.go:25.76,27.2 1 1
+book/studentcrud/repomongo/mongo.go:29.118,32.2 2 1
+book/studentcrud/repomongo/mongo.go:34.106,37.16 3 1
+book/studentcrud/repomongo/mongo.go:37.16,39.3 1 0
+book/studentcrud/repomongo/mongo.go:41.2,42.21 2 1
+book/studentcrud/repomongo/mongo.go:45.89,48.16 3 1
+book/studentcrud/repomongo/mongo.go:48.16,50.3 1 0
+book/studentcrud/repomongo/mongo.go:52.2,52.23 1 1
+book/studentcrud/repomongo/mongo.go:52.23,54.48 2 1
+book/studentcrud/repomongo/mongo.go:54.48,56.4 1 0
+book/studentcrud/repomongo/mongo.go:57.3,57.39 1 1
+book/studentcrud/repomongo/mongo.go:60.2,60.37 1 1
+book/studentcrud/repomongo/mongo.go:60.37,62.3 1 0
+book/studentcrud/repomongo/mongo.go:64.2,64.22 1 1
+book/studentcrud/repomongo/mongo.go:67.133,69.16 2 1
+book/studentcrud/repomongo/mongo.go:69.16,71.3 1 0
+book/studentcrud/repomongo/mongo.go:73.2,74.20 2 1
+book/studentcrud/repomongo/mongo.go:77.109,79.16 2 1
+book/studentcrud/repomongo/mongo.go:79.16,81.3 1 0
+book/studentcrud/repomongo/mongo.go:83.2,84.20 2 1
