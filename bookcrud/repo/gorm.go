@@ -23,8 +23,8 @@ func NewGormStore(db *gorm.DB) IBookRepository {
 }
 
 func (s *gormStore) New(book *model.Book) (*model.Book, error) {
-	result := s.db.Create(book) // This will add `book` into the database.
-	if result.Error != nil {    // Check for errors during the creation.
+	result := s.db.Create(book)
+	if result.Error != nil {
 		return nil, result.Error
 	}
 	return book, nil
@@ -33,8 +33,10 @@ func (s *gormStore) New(book *model.Book) (*model.Book, error) {
 func (s *gormStore) FindAll() ([]*model.Book, error) {
 	var books []*model.Book
 	if result := s.db.Find(&books); result.Error != nil {
+
 		return nil, result.Error
 	}
+
 	return books, nil
 }
 

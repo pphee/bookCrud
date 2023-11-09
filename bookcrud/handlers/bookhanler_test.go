@@ -351,7 +351,7 @@ func TestBookUpdateBook(t *testing.T) {
 
 			tt.mockUsecaseFn()
 
-			mockBook := &model.Book{ID: 1, Book: "pee", Author: "dans", Title: "555"}
+			mockBook := &model.Book{ID: 1, Book: "Updated Text", Author: "Author", Title: "Title"}
 			body, _ := json.Marshal(mockBook)
 			req, _ := http.NewRequest(http.MethodPut, "/books/"+tt.bookID, bytes.NewBuffer(body))
 			resp := httptest.NewRecorder()

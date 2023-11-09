@@ -5,22 +5,21 @@ import (
 	"book/bookcrud/repo"
 	"book/bookcrud/usecases"
 
+	"book/studentcrud/handlersmongo"
+	"book/studentcrud/repomongo"
+	"book/studentcrud/usecasesmongo"
+
 	"github.com/gin-gonic/gin"
 )
 
 type IModuleFactory interface {
 	BookModule()
-	Repository() repo.IBookRepository
-	Usecase() usecases.IBookUsecase
-	Handler() handlers.IBookHandler
+	StudentModule()
 }
 
 type moduleFactory struct {
-	r          *gin.RouterGroup
-	s          *server
-	repository repo.IBookRepository
-	usecase    usecases.IBookUsecase
-	handler    handlers.IBookHandler
+	r *gin.RouterGroup
+	s *server
 }
 
 func InitModule(r *gin.RouterGroup, s *server) IModuleFactory {
@@ -28,28 +27,34 @@ func InitModule(r *gin.RouterGroup, s *server) IModuleFactory {
 		r: r,
 		s: s,
 	}
-	bookRepository := repo.NewGormStore(s.db)
-	bookUsecase := usecases.NewBookUsecase(bookRepository)
-	bookHandler := handlers.NewBookHandler(bookUsecase)
-
-	mf.repository = bookRepository
-	mf.usecase = bookUsecase
-	mf.handler = bookHandler
 
 	return mf
 }
 
 func (mf *moduleFactory) BookModule() {
+	bookRepository := repo.NewGormStore(mf.s.db)
+	bookUsecase := usecases.NewBookUsecase(bookRepository)
+	bookHandler := handlers.NewBookHandler(bookUsecase)
 
 	bookRouter := mf.r.Group("/books")
 
-	bookRouter.GET("/:id", mf.handler.GetByID)
-	bookRouter.GET("", mf.handler.ListBooks)
-	bookRouter.POST("", mf.handler.CreateBook)
-	bookRouter.PUT("/:id", mf.handler.UpdateBook)
-	bookRouter.DELETE("/:id", mf.handler.DeleteBook)
+	bookRouter.GET("/:id", bookHandler.GetByID)
+	bookRouter.GET("", bookHandler.ListBooks)
+	bookRouter.POST("", bookHandler.CreateBook)
+	bookRouter.PUT("/:id", bookHandler.UpdateBook)
+	bookRouter.DELETE("/:id", bookHandler.DeleteBook)
 }
 
-func (f *moduleFactory) Repository() repo.IBookRepository { return f.repository }
-func (f *moduleFactory) Usecase() usecases.IBookUsecase   { return f.usecase }
-func (f *moduleFactory) Handler() handlers.IBookHandler   { return f.handler }
+func (mf *moduleFactory) StudentModule() {
+	studentRepository := repomongo.NewStudentRepository(mf.s.mongoCollection)
+	studentUsecase := usecasesmongo.NewStudentUseCase(studentRepository)
+	studentHandler := handlersmongo.NewStudentHandler(studentUsecase)
+
+	studentRouter := mf.r.Group("/students")
+
+	studentRouter.GET("/:id", studentHandler.GetStudent)
+	studentRouter.GET("", studentHandler.GetAllStudents)
+	studentRouter.POST("", studentHandler.PostStudent)
+	studentRouter.PUT("/:id", studentHandler.UpdateStudent)
+	studentRouter.DELETE("/:id", studentHandler.DeleteStudent)
+}

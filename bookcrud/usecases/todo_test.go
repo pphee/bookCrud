@@ -48,7 +48,6 @@ func TestBookUsecase_CreateBook(t *testing.T) {
 		ID:     1,
 	}
 
-	// The setup should return a *model.Book and an error, not just nil
 	mockRepo.On("New", book).Return(book, nil)
 
 	usecase := NewBookUsecase(mockRepo)
