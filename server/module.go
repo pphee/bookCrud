@@ -4,11 +4,9 @@ import (
 	"book/bookcrud/handlers"
 	"book/bookcrud/repo"
 	"book/bookcrud/usecases"
-
 	"book/studentcrud/handlersmongo"
 	"book/studentcrud/repomongo"
 	"book/studentcrud/usecasesmongo"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,7 +44,9 @@ func (mf *moduleFactory) BookModule() {
 }
 
 func (mf *moduleFactory) StudentModule() {
-	studentRepository := repomongo.NewStudentRepository(mf.s.mongoCollection)
+	encryptionKey := []byte("your-encryption-key-here")
+
+	studentRepository := repomongo.NewStudentRepository(mf.s.mongoCollection, encryptionKey)
 	studentUsecase := usecasesmongo.NewStudentUseCase(studentRepository)
 	studentHandler := handlersmongo.NewStudentHandler(studentUsecase)
 

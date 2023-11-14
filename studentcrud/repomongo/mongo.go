@@ -2,6 +2,7 @@ package repomongo
 
 import (
 	models "book/studentcrud"
+	"book/util"
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,14 +20,31 @@ type IStudentRepository interface {
 }
 
 type mongoStudentRepository struct {
-	collection *mongo.Collection
+	collection        *mongo.Collection
+	encryptionService util.IEncryptionService
 }
 
-func NewStudentRepository(collection *mongo.Collection) IStudentRepository {
-	return &mongoStudentRepository{collection: collection}
+func NewStudentRepository(collection *mongo.Collection, encryptionKey []byte) IStudentRepository {
+	encryptionService := util.NewEncryptionService(encryptionKey)
+	return &mongoStudentRepository{
+		collection:        collection,
+		encryptionService: encryptionService,
+	}
 }
 
 func (r *mongoStudentRepository) Create(ctx context.Context, student *models.Student) (*mongo.InsertOneResult, error) {
+	studentFirstName, err := r.encryptionService.Encrypt(student.FirstName)
+	if err != nil {
+		return nil, err
+	}
+	student.FirstName = studentFirstName
+
+	studentLastName, err := r.encryptionService.Encrypt(student.LastName)
+	if err != nil {
+		return nil, err
+	}
+	student.LastName = studentLastName
+
 	result, err := r.collection.InsertOne(ctx, student)
 	return result, err
 }
@@ -39,6 +57,19 @@ func (r *mongoStudentRepository) FindByID(ctx context.Context, studentID string)
 	}
 
 	err = r.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&student)
+	if err != nil {
+		return student, err
+	}
+
+	student.FirstName, err = r.encryptionService.Decrypt(student.FirstName)
+	if err != nil {
+		return student, err
+	}
+
+	student.LastName, err = r.encryptionService.Decrypt(student.LastName)
+	if err != nil {
+		return student, err
+	}
 	return student, err
 }
 
@@ -48,13 +79,16 @@ func (r *mongoStudentRepository) FindAll(ctx context.Context) ([]*models.Student
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
-		var student *models.Student
-		if err = cursor.Decode(&student); err != nil {
+		var student models.Student
+		if err := cursor.Decode(&student); err != nil {
 			return nil, err
 		}
-		students = append(students, student)
+		student.FirstName, _ = r.encryptionService.Decrypt(student.FirstName)
+		student.LastName, _ = r.encryptionService.Decrypt(student.LastName)
+		students = append(students, &student)
 	}
 
 	if err := cursor.Err(); err != nil {
