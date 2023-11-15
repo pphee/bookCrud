@@ -53,7 +53,7 @@ func (uc *studentUseCase) GetAllStudents(ctx context.Context) ([]*models.Student
 }
 
 func (uc *studentUseCase) UpdateStudent(ctx context.Context, id string, student models.Student) error {
-	_, err := uc.repo.Update(ctx, id, student)
+	_, err := uc.repo.Update(ctx, id, &student)
 	return err
 }
 

@@ -43,7 +43,6 @@ func TestCreateStudent(t *testing.T) {
 	_, collection, cleanup := setupInMemoryMongoDB(t)
 	defer cleanup()
 
-	// Provide a valid encryption key (example: 32 bytes key)
 	encryptionKey := []byte("your-encryption-key-here")
 
 	student := models.Student{
@@ -145,8 +144,10 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	studentID := "507f191e810c19729de860ea"
-	updateData := bson.M{
-		"FirstName": "Jane",
+	updateData := &models.Student{
+		FirstName: "Jane",
+		LastName:  "Smith",
+		Age:       21,
 	}
 
 	result, err := repo.Update(ctx, studentID, updateData)

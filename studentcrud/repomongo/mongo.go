@@ -15,7 +15,7 @@ type IStudentRepository interface {
 	Create(ctx context.Context, student *models.Student) (*mongo.InsertOneResult, error)
 	FindByID(ctx context.Context, studentID string) (models.Student, error)
 	FindAll(ctx context.Context) ([]*models.Student, error)
-	Update(ctx context.Context, studentID string, updateData interface{}) (*mongo.UpdateResult, error)
+	Update(ctx context.Context, studentID string, updateData *models.Student) (*mongo.UpdateResult, error)
 	Delete(ctx context.Context, studentID string) (*mongo.DeleteResult, error)
 }
 
@@ -98,13 +98,31 @@ func (r *mongoStudentRepository) FindAll(ctx context.Context) ([]*models.Student
 	return students, nil
 }
 
-func (r *mongoStudentRepository) Update(ctx context.Context, studentID string, updateData interface{}) (*mongo.UpdateResult, error) {
+func (r *mongoStudentRepository) Update(ctx context.Context, studentID string, updateData *models.Student) (*mongo.UpdateResult, error) {
 	objID, err := primitive.ObjectIDFromHex(studentID)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": updateData}, options.Update().SetUpsert(true))
+	if updateData.FirstName != "" {
+		encryptedFirstName, err := r.encryptionService.Encrypt(updateData.FirstName)
+		if err != nil {
+			return nil, err
+		}
+		updateData.FirstName = encryptedFirstName
+	}
+
+	if updateData.LastName != "" {
+		encryptedLastName, err := r.encryptionService.Encrypt(updateData.LastName)
+		if err != nil {
+			return nil, err
+		}
+		updateData.LastName = encryptedLastName
+	}
+
+	updateBson := bson.M{"$set": updateData}
+	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objID}, updateBson, options.Update().SetUpsert(true))
+
 	return result, err
 }
 
