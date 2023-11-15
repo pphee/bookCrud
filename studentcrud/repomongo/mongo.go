@@ -31,7 +31,8 @@ type mongoStudentRepository struct {
 	encryptionService util.IEncryptionService
 }
 
-func NewStudentRepository(collection Collection, encryptionService util.IEncryptionService) IStudentRepository {
+func NewStudentRepository(collection Collection, encryptionKey []byte) IStudentRepository {
+	encryptionService := util.NewEncryptionService(encryptionKey)
 	return &mongoStudentRepository{
 		collection:        collection,
 		encryptionService: encryptionService,
