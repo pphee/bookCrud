@@ -4,12 +4,19 @@ import (
 	models "book/studentcrud"
 	"book/util"
 	"context"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+type Collection interface {
+	InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult
+	Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (*mongo.Cursor, error)
+	UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
+}
 
 type IStudentRepository interface {
 	Create(ctx context.Context, student *models.Student) (*mongo.InsertOneResult, error)
@@ -20,12 +27,11 @@ type IStudentRepository interface {
 }
 
 type mongoStudentRepository struct {
-	collection        *mongo.Collection
+	collection        Collection
 	encryptionService util.IEncryptionService
 }
 
-func NewStudentRepository(collection *mongo.Collection, encryptionKey []byte) IStudentRepository {
-	encryptionService := util.NewEncryptionService(encryptionKey)
+func NewStudentRepository(collection Collection, encryptionService util.IEncryptionService) IStudentRepository {
 	return &mongoStudentRepository{
 		collection:        collection,
 		encryptionService: encryptionService,
