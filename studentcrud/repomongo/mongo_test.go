@@ -15,7 +15,7 @@ import (
 func TestCreateStudent(t *testing.T) {
 	mockCollection := &mocks.MockCollection{}
 	mockEncryptionService := &mocks.MockEncryptionService{}
-	repo := NewStudentRepository(mockCollection, mockEncryptionService)
+	repo := NewStudentRepository(mockCollection, nil)
 
 	student := &models.Student{
 		ID:        primitive.NewObjectID(),
@@ -46,7 +46,7 @@ func TestCreateStudent(t *testing.T) {
 func TestFindByID(t *testing.T) {
 	mockCollection := &mocks.MockCollection{}
 	mockEncryptionService := &mocks.MockEncryptionService{}
-	repo := NewStudentRepository(mockCollection, mockEncryptionService)
+	repo := NewStudentRepository(mockCollection, nil)
 
 	studentID := primitive.NewObjectID().Hex()
 	decryptedFirstName := "John"

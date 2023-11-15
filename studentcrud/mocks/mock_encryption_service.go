@@ -11,7 +11,11 @@ func (m *MockEncryptionService) Encrypt(data string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockEncryptionService) Decrypt(data string) (string, error) {
+func (m *MockEncryptionService) Decrypt(data string) ([]byte, error) {
 	args := m.Called(data)
-	return args.String(0), args.Error(1)
+	result, ok := args.Get(0).([]byte)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return result, args.Error(1)
 }
