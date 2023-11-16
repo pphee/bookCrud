@@ -25,6 +25,7 @@ func main() {
 	if err := srv.StartMongo(context.Background()); err != nil {
 		log.Fatalf("Failed to start MongoDB operations: %v", err)
 	}
+
 	srv.StartGin()
 
 }
