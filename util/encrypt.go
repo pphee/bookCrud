@@ -23,6 +23,7 @@ func NewEncryptionService(key []byte) IEncryptionService {
 
 func (s *EncryptionService) Encrypt(text string) (string, error) {
 	block, err := aes.NewCipher(s.key)
+
 	if err != nil {
 		return "", err
 	}
@@ -30,7 +31,7 @@ func (s *EncryptionService) Encrypt(text string) (string, error) {
 	paddedText := pkcs7Padding([]byte(text), aes.BlockSize)
 	ciphertext := make([]byte, len(paddedText))
 
-	mode := newECBEncrypter(block)
+	mode := newECEncrypted(block)
 	mode.CryptBlocks(ciphertext, paddedText)
 
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
@@ -52,21 +53,21 @@ func (s *EncryptionService) Decrypt(cryptoText string) (string, error) {
 	}
 
 	plaintext := make([]byte, len(ciphertext))
-	mode := newECBDecrypter(block)
+	mode := newECDecrypted(block)
 	mode.CryptBlocks(plaintext, ciphertext)
 
-	unpadPlaintext, err := pkcs7Unpadding(plaintext)
+	unpaidPlaintext, err := pkcs7Unpadding(plaintext)
 	if err != nil {
 		return "", err
 	}
 
-	return string(unpadPlaintext), nil
+	return string(unpaidPlaintext), nil
 }
 
 func pkcs7Padding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
+	latest := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, latest...)
 }
 
 func pkcs7Unpadding(data []byte) ([]byte, error) {
@@ -101,15 +102,15 @@ func newECB(b cipher.Block) *ecb {
 	}
 }
 
-type ecbEncrypter ecb
+type ecEncrypted ecb
 
-func newECBEncrypter(b cipher.Block) cipher.BlockMode {
-	return (*ecbEncrypter)(newECB(b))
+func newECEncrypted(b cipher.Block) cipher.BlockMode {
+	return (*ecEncrypted)(newECB(b))
 }
 
-func (x *ecbEncrypter) BlockSize() int { return x.blockSize }
+func (x *ecEncrypted) BlockSize() int { return x.blockSize }
 
-func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
+func (x *ecEncrypted) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		panic("crypto/cipher: input not full blocks")
 	}
@@ -123,15 +124,15 @@ func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 	}
 }
 
-type ecbDecrypter ecb
+type ecDecrypted ecb
 
-func newECBDecrypter(b cipher.Block) cipher.BlockMode {
-	return (*ecbDecrypter)(newECB(b))
+func newECDecrypted(b cipher.Block) cipher.BlockMode {
+	return (*ecDecrypted)(newECB(b))
 }
 
-func (x *ecbDecrypter) BlockSize() int { return x.blockSize }
+func (x *ecDecrypted) BlockSize() int { return x.blockSize }
 
-func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
+func (x *ecDecrypted) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		panic("crypto/cipher: input not full blocks")
 	}

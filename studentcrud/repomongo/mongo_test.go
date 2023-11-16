@@ -133,7 +133,9 @@ func TestUpdate(t *testing.T) {
 	_, collection, cleanup := setupInMemoryMongoDB(t)
 	defer cleanup()
 
-	repo := repomongo.NewStudentRepository(collection, nil)
+	encryptionKey := []byte("your-encryption-key-here")
+
+	repo := repomongo.NewStudentRepository(collection, encryptionKey)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

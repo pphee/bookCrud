@@ -31,8 +31,8 @@ func (m *mockRepository) FindAll(ctx context.Context) ([]*models.Student, error)
 	return args.Get(0).([]*models.Student), args.Error(1)
 }
 
-func (m *mockRepository) Update(ctx context.Context, id string, update interface{}) (*mongo.UpdateResult, error) {
-	args := m.Called(ctx, id, update)
+func (m *mockRepository) Update(ctx context.Context, studentID string, updateData *models.Student) (*mongo.UpdateResult, error) {
+	args := m.Called(ctx, studentID, updateData)
 	result, _ := args.Get(0), args.Error(1)
 	// You need to check if args.Get(0) is actually a *mongo.UpdateResult before casting
 	updateResult, ok := result.(*mongo.UpdateResult)
@@ -57,7 +57,7 @@ func TestCreateStudent(t *testing.T) {
 	useCase := usecasesmongo.NewStudentUseCase(mockRepo)
 	ctx := context.TODO()
 
-	newStudent := models.Student{
+	newStudent := &models.Student{
 		ID:        primitive.NewObjectID(),
 		FirstName: "John",
 		LastName:  "Doe",
@@ -69,7 +69,7 @@ func TestCreateStudent(t *testing.T) {
 
 	mockRepo.On("Create", ctx, newStudent).Return(insertOneResult, nil)
 
-	studentID, err := useCase.CreateStudent(ctx, &newStudent)
+	studentID, err := useCase.CreateStudent(ctx, newStudent)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newStudent.ID, studentID)
@@ -94,7 +94,7 @@ func TestGetStudentByID(t *testing.T) {
 	student, err := useCase.GetStudentByID(ctx, studentID)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedStudent, student)
+	assert.Equal(t, &expectedStudent, student)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -130,7 +130,7 @@ func TestUpdateStudent(t *testing.T) {
 
 	updateResult := &mongo.UpdateResult{}
 
-	mockRepo.On("Update", ctx, studentID, updatedStudent).Return(updateResult, nil)
+	mockRepo.On("Update", ctx, studentID, &updatedStudent).Return(updateResult, nil)
 
 	err := useCase.UpdateStudent(ctx, studentID, updatedStudent)
 
@@ -143,7 +143,7 @@ func TestGetAllStudents(t *testing.T) {
 	useCase := usecasesmongo.NewStudentUseCase(mockRepo)
 	ctx := context.TODO()
 
-	expectedStudents := []models.Student{
+	expectedStudents := []*models.Student{
 		{
 			ID:        primitive.NewObjectID(),
 			FirstName: "phee",

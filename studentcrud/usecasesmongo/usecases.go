@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// StudentUseCase interface defines the business logic for Student entities.
 type IStudentUseCase interface {
 	CreateStudent(ctx context.Context, student *models.Student) (primitive.ObjectID, error)
 	GetStudentByID(ctx context.Context, id string) (*models.Student, error)
