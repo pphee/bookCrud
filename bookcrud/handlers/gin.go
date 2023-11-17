@@ -43,6 +43,12 @@ func (h *bookHandler) CreateBook(c *gin.Context) {
 		return
 	}
 
+	// Add validation for book data
+	if book.Title == "" || book.Author == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "title or author cannot be empty"})
+		return
+	}
+
 	if err := h.usecase.CreateBook(&book); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
