@@ -50,6 +50,7 @@ func (h *StudentHandler) PostStudent(c *gin.Context) {
 func (h *StudentHandler) GetStudent(c *gin.Context) {
 	id := c.Param("id")
 	student, err := h.useCase.GetStudentByID(c.Request.Context(), id)
+
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
 		return

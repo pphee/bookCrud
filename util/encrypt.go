@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"errors"
+	"fmt"
 )
 
 type IEncryptionService interface {
@@ -40,28 +41,28 @@ func (s *EncryptionService) Encrypt(text string) (string, error) {
 func (s *EncryptionService) Decrypt(cryptoText string) (string, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(cryptoText)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("base64 decode error: %w", err)
 	}
 
 	block, err := aes.NewCipher(s.key)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cipher creation error: %w", err)
 	}
 
 	if len(ciphertext)%aes.BlockSize != 0 {
-		return "", errors.New("ciphertext is not a multiple of the block size")
+		return "", fmt.Errorf("ciphertext length not a multiple of block size: %d", len(ciphertext))
 	}
 
 	plaintext := make([]byte, len(ciphertext))
 	mode := newECDecrypted(block)
 	mode.CryptBlocks(plaintext, ciphertext)
 
-	unpaidPlaintext, err := pkcs7Unpadding(plaintext)
+	unpaddedPlaintext, err := pkcs7Unpadding(plaintext)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("pkcs7 unpadding error: %w", err)
 	}
 
-	return string(unpaidPlaintext), nil
+	return string(unpaddedPlaintext), nil
 }
 
 func pkcs7Padding(ciphertext []byte, blockSize int) []byte {
@@ -77,8 +78,12 @@ func pkcs7Unpadding(data []byte) ([]byte, error) {
 	}
 
 	padLen := int(data[length-1])
-	if padLen > length || padLen > aes.BlockSize {
+	if padLen <= 0 || padLen > aes.BlockSize {
 		return nil, errors.New("pkcs7: Invalid padding")
+	}
+
+	if padLen > length {
+		return nil, errors.New("pkcs7: Padding length is greater than data length")
 	}
 
 	for _, padByte := range data[length-padLen:] {

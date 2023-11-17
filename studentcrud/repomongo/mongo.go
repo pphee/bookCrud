@@ -4,7 +4,7 @@ import (
 	models "book/studentcrud"
 	"book/util"
 	"context"
-
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -61,16 +61,22 @@ func (r *mongoStudentRepository) FindByID(ctx context.Context, studentID string)
 		return student, err
 	}
 
+	fmt.Println("Original student data:", student)
+
 	student.FirstName, err = r.encryptionService.Decrypt(student.FirstName)
 	if err != nil {
+		fmt.Printf("Error decrypting FirstName: %v\n", err)
 		return student, err
 	}
 
 	student.LastName, err = r.encryptionService.Decrypt(student.LastName)
 	if err != nil {
+		fmt.Printf("Error decrypting LastName: %v\n", err)
 		return student, err
 	}
-	return student, err
+
+	fmt.Println("Decrypted student data:", student)
+	return student, nil
 }
 
 func (r *mongoStudentRepository) FindAll(ctx context.Context) ([]*models.Student, error) {

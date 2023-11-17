@@ -44,7 +44,7 @@ func (mf *moduleFactory) BookModule() {
 }
 
 func (mf *moduleFactory) StudentModule() {
-	encryptionKey := []byte("your-encryption-key-here")
+	encryptionKey := []byte("jack-queen-kingpok92deng")
 
 	studentRepository := repomongo.NewStudentRepository(mf.s.mongoCollection, encryptionKey)
 	studentUsecase := usecasesmongo.NewStudentUseCase(studentRepository)
