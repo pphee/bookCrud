@@ -123,7 +123,7 @@ func (s *server) StartFirebase() error {
 	defer func(client *firestore.Client) {
 		err := client.Close()
 		if err != nil {
-
+			log.Printf("failed to close Firestore client: %v", err)
 		}
 	}(client)
 
