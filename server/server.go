@@ -4,8 +4,10 @@ import (
 	"book/bookcrud/repo"
 	"book/generator"
 	"book/studentcrud/repomongo"
+	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
+	firebase "firebase.google.com/go"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,6 +20,7 @@ import (
 type IServer interface {
 	StartGin()
 	StartMongo(ctx context.Context) error
+	StartFirebase() error
 }
 
 type server struct {
@@ -27,13 +30,14 @@ type server struct {
 	mongoCollection *mongo.Collection
 	studentRepo     repomongo.IStudentRepository
 	bookRepo        repo.IBookRepository
+	firebaseApp     *firebase.App
 }
 
-func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection) IServer {
+func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection, firebaseApp *firebase.App) IServer {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 
-	encryptionKey := []byte("your-encryption-key-here") // Use your actual encryption key
+	encryptionKey := []byte("jack-queen-kingpok92deng") // Use your actual encryption key
 	studentRepo := repomongo.NewStudentRepository(mongoCollection, encryptionKey)
 
 	bookRepo := repo.NewGormStore(db)
@@ -45,6 +49,7 @@ func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Co
 		mongoCollection: mongoCollection,
 		studentRepo:     studentRepo,
 		bookRepo:        bookRepo,
+		firebaseApp:     firebaseApp,
 	}
 }
 
@@ -106,5 +111,23 @@ func (s *server) StartMongo(ctx context.Context) error {
 		return fmt.Errorf("failed to insert student: %v", err)
 	}
 	log.Println("MongoDB has been started successfully")
+	return nil
+}
+
+func (s *server) StartFirebase() error {
+	ctx := context.Background()
+	client, err := s.firebaseApp.Firestore(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to connect to Firestore: %w", err)
+	}
+	defer func(client *firestore.Client) {
+		err := client.Close()
+		if err != nil {
+
+		}
+	}(client)
+
+	log.Println("firebase has been started successfully")
+
 	return nil
 }

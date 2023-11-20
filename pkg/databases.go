@@ -2,12 +2,13 @@ package pkg
 
 import (
 	"context"
+	firebase "firebase.google.com/go"
 	"fmt"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"os"
 )
 
 func DbConnectGorm() *gorm.DB {
@@ -39,4 +40,23 @@ func ConnectMongoDB() (*mongo.Client, *mongo.Collection, error) {
 	db := client.Database(databaseName)
 	collection := db.Collection(collectionName)
 	return client, collection, nil
+}
+
+func ConnectFirebaseEmulator() (*firebase.App, error) {
+	err := os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:8080")
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	conf := &firebase.Config{
+		ProjectID: "gocloud",
+	}
+
+	app, err := firebase.NewApp(ctx, conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }
