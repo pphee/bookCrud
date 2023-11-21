@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Failed to run auto migration for Book model: %v", err)
 	}
 
-	firebaseDB, err := pkg.ConnectFirebaseEmulator()
+	firebaseDB, err := pkg.ConnectFirebase()
 	if err != nil {
 		log.Fatalf("Failed to connect to Firebase: %v", err)
 	}
@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("Failed to start MongoDB operations: %v", err)
 	}
 
-	if err := srv.StartFirebase(); err != nil {
+	if err := srv.StartFirebase(context.Background()); err != nil {
 		log.Fatalf("Failed to start Firebase operations: %v", err)
 	}
 

@@ -6,11 +6,12 @@ import (
 	"book/studentcrud/repomongo"
 	"cloud.google.com/go/firestore"
 	"context"
+	"crypto/sha256"
 	"errors"
-	firebase "firebase.google.com/go"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +21,41 @@ import (
 type IServer interface {
 	StartGin()
 	StartMongo(ctx context.Context) error
-	StartFirebase() error
+	StartFirebase(ctx context.Context) error
+}
+
+func hash(s string) string {
+	h := sha256.New()
+	h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+type Dog struct {
+	Name    string                 `firestore:"name"`
+	Age     int                    `firestore:"age"`
+	Human   *firestore.DocumentRef `firestore:"human"`
+	Created time.Time              `firestore:"created"`
+}
+
+func NewDog(name string, age int, human *firestore.DocumentRef) Dog {
+	return Dog{
+		Name:    name,
+		Age:     age,
+		Human:   human,
+		Created: time.Now(),
+	}
+}
+
+func (d *Dog) ID() string {
+	return hash(d.Name)
+}
+
+type Human struct {
+	Name string `firestore:"name"`
+}
+
+func (h *Human) ID() string {
+	return hash(h.Name)
 }
 
 type server struct {
@@ -30,10 +65,10 @@ type server struct {
 	mongoCollection *mongo.Collection
 	studentRepo     repomongo.IStudentRepository
 	bookRepo        repo.IBookRepository
-	firebaseApp     *firebase.App
+	firebaseClient  *firestore.Client
 }
 
-func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection, firebaseApp *firebase.App) IServer {
+func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection, firebaseClient *firestore.Client) IServer {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 
@@ -49,13 +84,13 @@ func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Co
 		mongoCollection: mongoCollection,
 		studentRepo:     studentRepo,
 		bookRepo:        bookRepo,
-		firebaseApp:     firebaseApp,
+		firebaseClient:  firebaseClient,
 	}
 }
 
 func (s *server) StartGin() {
 	api := s.app.Group("/api")
-	modules := InitModule(api, s)
+	modules := InitModule(api, s, s.firebaseClient)
 	modules.BookModule()
 	port := ":8080"
 	log.Printf("Server is starting on %v", port)
@@ -81,7 +116,7 @@ func (s *server) StartGin() {
 
 func (s *server) StartMongo(ctx context.Context) error {
 	api := s.app.Group("/api")
-	modules := InitModule(api, s)
+	modules := InitModule(api, s, s.firebaseClient)
 	modules.StudentModule()
 	if err := s.mongoClient.Ping(ctx, nil); err != nil {
 		return fmt.Errorf("failed to ping MongoDB: %w", err)
@@ -114,20 +149,22 @@ func (s *server) StartMongo(ctx context.Context) error {
 	return nil
 }
 
-func (s *server) StartFirebase() error {
-	ctx := context.Background()
-	client, err := s.firebaseApp.Firestore(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to connect to Firestore: %w", err)
+func (s *server) StartFirebase(ctx context.Context) error {
+	api := s.app.Group("/api")
+	modules := InitModule(api, s, s.firebaseClient)
+	modules.TeacherModule()
+	me := Human{Name: "me"}
+	meDocRef := s.firebaseClient.Collection("humans").Doc(me.ID())
+	if _, err := meDocRef.Set(ctx, me); err != nil {
+		log.Fatalf("failed to add human to Firestore: %v", err)
 	}
-	defer func(client *firestore.Client) {
-		err := client.Close()
-		if err != nil {
-			log.Printf("failed to close Firestore client: %v", err)
-		}
-	}(client)
 
-	log.Println("firebase has been started successfully")
+	freddie := NewDog("Freddie", 2, meDocRef)
+	freddieDocRef := s.firebaseClient.Collection("dogs").Doc(freddie.ID())
+	if _, err := freddieDocRef.Set(ctx, freddie); err != nil {
+		log.Fatalf("failed to add dog to Firestore: %v", err)
+	}
 
+	log.Println("Data added to Firestore successfully")
 	return nil
 }

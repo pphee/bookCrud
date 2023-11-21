@@ -1,8 +1,8 @@
 package pkg
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
-	firebase "firebase.google.com/go"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -25,6 +25,11 @@ const (
 	collectionName = "cloudbook"
 )
 
+const (
+	databaseFirebaseName   = "go-firebase-teacher"
+	collectionFirebaseName = "go-firebase-teacher"
+)
+
 func ConnectMongoDB() (*mongo.Client, *mongo.Collection, error) {
 	clientOptions := options.Client().ApplyURI(mongoURI)
 	client, err := mongo.Connect(context.Background(), clientOptions)
@@ -42,21 +47,23 @@ func ConnectMongoDB() (*mongo.Client, *mongo.Collection, error) {
 	return client, collection, nil
 }
 
-func ConnectFirebaseEmulator() (*firebase.App, error) {
-	err := os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:8080")
+func ConnectFirebase() (*firestore.Client, error) {
+	err := os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:7070")
 	if err != nil {
 		return nil, err
 	}
 
-	ctx := context.Background()
-	conf := &firebase.Config{
-		ProjectID: "gocloud",
-	}
-
-	app, err := firebase.NewApp(ctx, conf)
+	err = os.Setenv("PROJECT", "go-firebase-teacher")
 	if err != nil {
 		return nil, err
 	}
 
-	return app, nil
+	projectID := "go-firebase-teacher"
+
+	client, err := firestore.NewClient(context.Background(), projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Firestore client: %w", err)
+	}
+
+	return client, nil
 }

@@ -7,23 +7,30 @@ import (
 	"book/studentcrud/handlersmongo"
 	"book/studentcrud/repomongo"
 	"book/studentcrud/usecasesmongo"
+	"book/teachercrud/handlersfirebase"
+	"book/teachercrud/repofirebase"
+	"book/teachercrud/usecasesfirebase"
+	"cloud.google.com/go/firestore"
 	"github.com/gin-gonic/gin"
 )
 
 type IModuleFactory interface {
 	BookModule()
 	StudentModule()
+	TeacherModule()
 }
 
 type moduleFactory struct {
-	r *gin.RouterGroup
-	s *server
+	r              *gin.RouterGroup
+	s              *server
+	firebaseClient *firestore.Client
 }
 
-func InitModule(r *gin.RouterGroup, s *server) IModuleFactory {
+func InitModule(r *gin.RouterGroup, s *server, firebaseClient *firestore.Client) IModuleFactory {
 	mf := &moduleFactory{
-		r: r,
-		s: s,
+		r:              r,
+		s:              s,
+		firebaseClient: firebaseClient,
 	}
 
 	return mf
@@ -57,4 +64,20 @@ func (mf *moduleFactory) StudentModule() {
 	studentRouter.POST("", studentHandler.PostStudent)
 	studentRouter.PUT("/:id", studentHandler.UpdateStudent)
 	studentRouter.DELETE("/:id", studentHandler.DeleteStudent)
+}
+
+func (mf *moduleFactory) TeacherModule() {
+
+	teacherCollection := mf.firebaseClient.Collection("teachers")
+	teacherRepo := repofirebase.NewTeacherRepository(teacherCollection)
+	teacherUsecase := usecasesfirebase.NewTeacherUseCases(teacherRepo)
+	teacherHandler := handlersfirebase.NewTeacherHandlers(teacherUsecase)
+
+	teacherRouter := mf.r.Group("/teachers")
+
+	teacherRouter.GET("/:id", teacherHandler.RetrieveTeacher)
+	teacherRouter.GET("", teacherHandler.RetrieveAllTeachers)
+	teacherRouter.POST("", teacherHandler.AddTeacher)
+	teacherRouter.PUT("/:id", teacherHandler.ModifyTeacher)
+	teacherRouter.DELETE("/:id", teacherHandler.RemoveTeacher)
 }
