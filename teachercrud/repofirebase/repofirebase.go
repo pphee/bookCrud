@@ -4,7 +4,6 @@ import (
 	models "book/teachercrud"
 	"cloud.google.com/go/firestore"
 	"context"
-	"encoding/json"
 	"errors"
 	"google.golang.org/api/iterator"
 )
@@ -42,7 +41,7 @@ func (r *TeacherRepository) GetTeacherByID(ctx context.Context, id string) (*mod
 		return nil, err
 	}
 
-	teacher.HashedID = teacher.HashID() // Update HashedID based on the fetched ID
+	teacher.HashedID = teacher.HashID()
 	return &teacher, nil
 }
 
@@ -73,17 +72,34 @@ func (r *TeacherRepository) GetAllTeachers(ctx context.Context) ([]*models.Teach
 }
 
 func (r *TeacherRepository) UpdateTeacher(ctx context.Context, id string, teacher *models.Teacher) error {
-	teacherBytes, err := json.Marshal(teacher)
+	doc, err := r.collection.Doc(id).Get(ctx)
 	if err != nil {
 		return err
 	}
 
-	var teacherMap map[string]interface{}
-	if err := json.Unmarshal(teacherBytes, &teacherMap); err != nil {
+	var currentTeacher models.Teacher
+	if err := doc.DataTo(&currentTeacher); err != nil {
 		return err
 	}
 
-	_, err = r.collection.Doc(id).Set(ctx, teacherMap)
+	var updates []firestore.Update
+
+	addUpdate := func(field string, value interface{}) {
+		if value != "" {
+			updates = append(updates, firestore.Update{
+				Path:  field,
+				Value: value,
+			})
+		}
+	}
+	addUpdate("name", teacher.Name)
+	addUpdate("firstName", teacher.FirstName)
+	addUpdate("lastName", teacher.LastName)
+	addUpdate("subject", teacher.Subject)
+	addUpdate("email", teacher.Email)
+	addUpdate("phone", teacher.Phone)
+
+	_, err = r.collection.Doc(id).Update(ctx, updates)
 	return err
 }
 
