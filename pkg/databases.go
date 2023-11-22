@@ -48,19 +48,17 @@ func ConnectMongoDB() (*mongo.Client, *mongo.Collection, error) {
 }
 
 func ConnectFirebase() (*firestore.Client, error) {
-	err := os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:7070")
-	if err != nil {
-		return nil, err
+	firestoreEmulatorHost := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if firestoreEmulatorHost == "" {
+		return nil, fmt.Errorf("FIRESTORE_EMULATOR_HOST environment variable is not set")
 	}
 
-	err = os.Setenv("PROJECT", "go-firebase-teacher")
-	if err != nil {
-		return nil, err
+	project := os.Getenv("PROJECT")
+	if project == "" {
+		return nil, fmt.Errorf("PROJECT environment variable is not set")
 	}
 
-	projectID := "go-firebase-teacher"
-
-	client, err := firestore.NewClient(context.Background(), projectID)
+	client, err := firestore.NewClient(context.Background(), project)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Firestore client: %w", err)
 	}

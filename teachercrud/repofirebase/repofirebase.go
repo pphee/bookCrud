@@ -4,6 +4,7 @@ import (
 	models "book/teachercrud"
 	"cloud.google.com/go/firestore"
 	"context"
+	"encoding/json"
 	"errors"
 	"google.golang.org/api/iterator"
 )
@@ -25,7 +26,8 @@ func NewTeacherRepository(collection *firestore.CollectionRef) ITeacherRepositor
 }
 
 func (r *TeacherRepository) CreateTeacher(ctx context.Context, teacher *models.Teacher) error {
-	_, err := r.collection.Doc(teacher.ID).Set(ctx, teacher)
+	teacher.HashedID = teacher.HashID()
+	_, err := r.collection.Doc(teacher.HashedID).Set(ctx, teacher)
 	return err
 }
 
@@ -39,7 +41,8 @@ func (r *TeacherRepository) GetTeacherByID(ctx context.Context, id string) (*mod
 	if err := doc.DataTo(&teacher); err != nil {
 		return nil, err
 	}
-	teacher.ID = doc.Ref.ID
+
+	teacher.HashedID = teacher.HashID() // Update HashedID based on the fetched ID
 	return &teacher, nil
 }
 
@@ -62,7 +65,7 @@ func (r *TeacherRepository) GetAllTeachers(ctx context.Context) ([]*models.Teach
 		if err := doc.DataTo(&teacher); err != nil {
 			return nil, err
 		}
-		teacher.ID = doc.Ref.ID
+		teacher.HashedID = doc.Ref.ID
 		teachers = append(teachers, &teacher)
 	}
 
@@ -70,7 +73,17 @@ func (r *TeacherRepository) GetAllTeachers(ctx context.Context) ([]*models.Teach
 }
 
 func (r *TeacherRepository) UpdateTeacher(ctx context.Context, id string, teacher *models.Teacher) error {
-	_, err := r.collection.Doc(id).Set(ctx, teacher, firestore.MergeAll)
+	teacherBytes, err := json.Marshal(teacher)
+	if err != nil {
+		return err
+	}
+
+	var teacherMap map[string]interface{}
+	if err := json.Unmarshal(teacherBytes, &teacherMap); err != nil {
+		return err
+	}
+
+	_, err = r.collection.Doc(id).Set(ctx, teacherMap)
 	return err
 }
 
