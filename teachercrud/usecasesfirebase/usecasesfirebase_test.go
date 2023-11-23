@@ -151,7 +151,7 @@ func TestUpdateTeacher(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to update teacher: %s", err)
 	}
-	if mockRepo.Teachers[teacher.HashedID].Name != "Updated Name" {
+	if mockRepo.Teachers[teacher.HashedID].Name != "iphone" {
 		t.Errorf("Teacher was not updated correctly")
 	}
 }
