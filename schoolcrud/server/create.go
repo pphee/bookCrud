@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	pb "book/schoolcrud/proto"
@@ -13,7 +13,8 @@ import (
 func (s *Server) CreateSchool(ctx context.Context, req *pb.School) (*pb.SchoolId, error) {
 	log.Println("CreateSchool")
 
-	if s.mongoCollectionGrpc == nil {
+	if s.collection == nil {
+		log.Println("mongoCollectionGrpc is not initialized")
 		return nil, status.Errorf(codes.Internal, "mongoCollectionGrpc is not initialized")
 	}
 
@@ -24,7 +25,7 @@ func (s *Server) CreateSchool(ctx context.Context, req *pb.School) (*pb.SchoolId
 		Phone:    req.Phone,
 	}
 
-	res, err := s.mongoCollectionGrpc.InsertOne(ctx, data)
+	res, err := s.collection.InsertOne(ctx, data)
 
 	if err != nil {
 		return nil, status.Errorf(

@@ -10,7 +10,6 @@ import (
 func CreateSchool(c pb.SchoolServiceClient) string {
 	log.Println("-------------CreateSchool------------")
 
-	// Context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -23,7 +22,8 @@ func CreateSchool(c pb.SchoolServiceClient) string {
 
 	res, err := c.CreateSchool(ctx, school)
 	if err != nil {
-		log.Fatalf("Unexpected error: %v", err)
+		log.Printf("Unexpected error: %v", err)
+		return ""
 	}
 	log.Printf("Response from CreateSchool: %v", res.Id)
 

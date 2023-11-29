@@ -183,22 +183,22 @@ type Server struct {
 	mongoCollectionGrpc *mongo.Collection
 }
 
+var addr string = "0.0.0.0:50051"
+
 func (s *server) StartGrpc(ctx context.Context) error {
 	g := grpc.NewServer()
 	pb.RegisterSchoolServiceServer(g, &Server{
 		mongoClientGrpc:     s.mongoClientGrpc,
 		mongoCollectionGrpc: s.mongoCollectionGrpc,
 	})
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	go func() {
-		if err := g.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
-		}
-	}()
+	if err := g.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v\n", err)
+	}
 
 	log.Println("gRPC client connected successfully")
 	return nil
