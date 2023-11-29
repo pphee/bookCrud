@@ -5,9 +5,8 @@ import (
 	"book/pkg"
 	"book/server"
 	"context"
-	"log"
-
 	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
@@ -31,7 +30,12 @@ func main() {
 		log.Fatalf("Failed to connect to Firebase: %v", err)
 	}
 
-	srv := server.NewServer(gormDB, mongoClient, mongoCollection, firebaseDB)
+	mongoClientGrpc, mongoCollectionGrpc, err := pkg.ConnectMongoDBGrpc()
+	if err != nil {
+		log.Fatalf("Failed to connect to MongoDB: %v", err)
+	}
+
+	srv := server.NewServer(gormDB, mongoClient, mongoCollection, firebaseDB, mongoClientGrpc, mongoCollectionGrpc)
 
 	if err := srv.StartMongo(context.Background()); err != nil {
 		log.Fatalf("Failed to start MongoDB operations: %v", err)
@@ -41,5 +45,10 @@ func main() {
 		log.Fatalf("Failed to start Firebase operations: %v", err)
 	}
 
+	if err := srv.StartGrpc(context.Background()); err != nil {
+		log.Fatalf("Failed to start MongoDB operations: %v", err)
+	}
+
 	srv.StartGin()
+
 }

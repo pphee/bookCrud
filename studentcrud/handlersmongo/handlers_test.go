@@ -184,8 +184,8 @@ func TestPostStudent(t *testing.T) {
 	}
 
 	validStudentJSON, _ := json.Marshal(validStudent)
-	invalidInputStudentJSON := []byte(`{"FirstName": "", "LastName": "", "Age": 0}`)   // This can still be valid JSON but fails your application's validation
-	invalidJSON := []byte(`{"FirstName": "John", "LastName": "Doe", "Age": "twenty"}`) // Invalid JSON, age should be an integer
+	invalidInputStudentJSON := []byte(`{"FirstName": "", "LastName": "", "Age": 0}`)
+	invalidJSON := []byte(`{"FirstName": "John", "LastName": "Doe", "Age": "twenty"}`)
 
 	r := gin.Default()
 	r.POST("/students", handler.PostStudent)

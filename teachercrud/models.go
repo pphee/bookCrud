@@ -17,6 +17,6 @@ type Teacher struct {
 
 func (t *Teacher) HashID() string {
 	h := sha256.New()
-	h.Write([]byte(t.HashedID))
+	h.Write([]byte(t.Email))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }

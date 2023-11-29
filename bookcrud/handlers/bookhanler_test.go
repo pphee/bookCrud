@@ -276,7 +276,6 @@ func TestCreateBook(t *testing.T) {
 			mockUsecase.ExpectedCalls = nil
 			mockUsecase.Calls = nil
 
-			// Act
 			tt.prepare()
 
 			body, _ := json.Marshal(tt.inputBook)

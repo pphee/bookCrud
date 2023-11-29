@@ -1,0 +1,27 @@
+syntax = 'proto3';
+
+package school;
+
+option go_package ="book/schoolcrud/proto";
+
+import "google/protobuf/empty.proto";
+
+message School {
+   string id = 1;
+   string school_id = 2;
+   string name = 3;
+   string address = 4;
+   string phone = 5;
+}
+
+message SchoolId {
+   string id = 1;
+}
+
+service SchoolService{
+  rpc CreateSchool(School) returns (SchoolId);
+  rpc GetSchool(SchoolId) returns (School);
+  rpc UpdateSchool(School) returns (google.protobuf.Empty);
+  rpc DeleteSchool(SchoolId) returns (google.protobuf.Empty);
+  rpc ListSchool(google.protobuf.Empty) returns (stream School);
+}
