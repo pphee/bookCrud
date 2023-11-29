@@ -71,7 +71,7 @@ clean_calculator: ## Clean generated files for calculator
 	${RM_F_CMD} calculator/${PROTO_DIR}/*.pb.go
 
 clean_schoolcrud: ## Clean generated files for schoolcrud
-	${RM_F_CMD} school/${PROTO_DIR}/*.pb.go
+	${RM_F_CMD} schoolcrud/${PROTO_DIR}/*.pb.go
 
 rebuild: clean all ## Rebuild the whole project
 
