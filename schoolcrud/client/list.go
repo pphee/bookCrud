@@ -9,7 +9,7 @@ import (
 )
 
 func listSchool(c pb.SchoolServiceClient) {
-	log.Println("---listBlog was invoked---")
+	log.Println("--------------------listSchool--------------------")
 	stream, err := c.ListSchool(context.Background(), &emptypb.Empty{})
 
 	if err != nil {

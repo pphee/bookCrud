@@ -7,7 +7,7 @@ import (
 )
 
 func deleteSchool(c pb.SchoolServiceClient, id string) {
-	log.Println("------------deleteSchool was invoked--------------")
+	log.Println("-----------------deleteSchool-------------------")
 	_, err := c.DeleteSchool(context.Background(), &pb.SchoolId{Id: id})
 
 	if err != nil {

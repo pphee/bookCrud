@@ -25,6 +25,6 @@ func main() {
 	CreateSchool(c)
 	readSchool(c, "6567039a9c6a41d775918e82")
 	updateSchool(c, "656702964e4fd2393397c4de")
-	deleteSchool(c, "65670ee0719f33813b9b6c66")
+	deleteSchool(c, "6568640ee28bb0c9bdf82dd5")
 	listSchool(c)
 }
