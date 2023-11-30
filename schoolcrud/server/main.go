@@ -18,10 +18,9 @@ const (
 
 var addr string = "0.0.0.0:50051"
 
-// Server struct to hold the collection
 type Server struct {
-	collection *mongo.Collection
 	pb.SchoolServiceServer
+	collection *mongo.Collection
 }
 
 func main() {

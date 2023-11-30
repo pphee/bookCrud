@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Server) DeleteSchool(ctx context.Context, req *pb.SchoolId) (*emptypb.Empty, error) {
-	log.Printf("DeleteBlog was invoked with %v\n", req)
+	log.Printf("DeleteSchool was invoked with %v\n", req)
 
 	oid, err := primitive.ObjectIDFromHex(req.Id)
 	if err != nil {
@@ -35,7 +35,7 @@ func (s *Server) DeleteSchool(ctx context.Context, req *pb.SchoolId) (*emptypb.E
 	if res.DeletedCount == 0 {
 		return nil, status.Errorf(
 			codes.NotFound,
-			"Blog was not found",
+			"School was not found",
 		)
 	}
 
