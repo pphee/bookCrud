@@ -109,13 +109,13 @@ func TestCreateSchool(t *testing.T) {
 		Phone:    "123-456-7890",
 	}
 
-	mockRepo.EXPECT().CreateSchool(ctx, testSchool).Return(&proto.SchoolId{Id: "some-id"}, nil)
+	mockRepo.EXPECT().CreateSchool(ctx, testSchool).Return(&proto.SchoolId{Id: "1"}, nil)
 
 	schoolId, err := uc.CreateSchool(ctx, testSchool)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, schoolId)
-	assert.Equal(t, "some-id", schoolId.Id)
+	assert.Equal(t, "1", schoolId.Id)
 }
 
 func TestListSchools(t *testing.T) {
