@@ -4,7 +4,6 @@ import (
 	pb "book/schoolcrud/proto"
 	"book/schoolcrud/server"
 	"context"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
@@ -25,7 +24,6 @@ func TestGetSchool(t *testing.T) {
 		Phone:    "123-456-7890",
 	}
 	_, err := collection.InsertOne(context.Background(), testSchoolItem)
-	fmt.Println("TestGetSchool", testSchoolItem)
 	assert.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

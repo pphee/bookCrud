@@ -1,4 +1,4 @@
-package main
+package servermodel
 
 import (
 	pb "book/schoolcrud/proto"
