@@ -30,12 +30,7 @@ func main() {
 		log.Fatalf("Failed to connect to Firebase: %v", err)
 	}
 
-	mongoClientGrpc, mongoCollectionGrpc, err := pkg.ConnectMongoDBGrpc()
-	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
-	}
-
-	srv := server.NewServer(gormDB, mongoClient, mongoCollection, firebaseDB, mongoClientGrpc, mongoCollectionGrpc)
+	srv := server.NewServer(gormDB, mongoClient, mongoCollection, firebaseDB)
 
 	if err := srv.StartMongo(context.Background()); err != nil {
 		log.Fatalf("Failed to start MongoDB operations: %v", err)
@@ -43,10 +38,6 @@ func main() {
 
 	if err := srv.StartFirebase(context.Background()); err != nil {
 		log.Fatalf("Failed to start Firebase operations: %v", err)
-	}
-
-	if err := srv.StartGrpc(context.Background()); err != nil {
-		log.Fatalf("Failed to start MongoDB operations: %v", err)
 	}
 
 	srv.StartGin()

@@ -60,26 +60,3 @@ func ConnectFirebase() (*firestore.Client, error) {
 
 	return client, nil
 }
-
-const (
-	mongoURIGrpc       = "mongodb://school:school007@localhost:7700/"
-	databaseNameGrpc   = "grpcschool"
-	collectionNameGrpc = "grpcschool"
-)
-
-func ConnectMongoDBGrpc() (*mongo.Client, *mongo.Collection, error) {
-	clientOptions := options.Client().ApplyURI(mongoURIGrpc)
-	client, err := mongo.Connect(context.Background(), clientOptions)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
-	}
-
-	err = client.Ping(context.Background(), nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to ping MongoDB: %w", err)
-	}
-
-	db := client.Database(databaseNameGrpc)
-	collection := db.Collection(collectionNameGrpc)
-	return client, collection, nil
-}

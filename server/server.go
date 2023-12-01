@@ -3,16 +3,13 @@ package server
 import (
 	"book/bookcrud/repo"
 	"book/generator"
-	pb "book/schoolcrud/proto"
 	"book/studentcrud/repomongo"
 	"cloud.google.com/go/firestore"
 	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
-	"net"
 	"net/http"
 	"time"
 
@@ -25,7 +22,6 @@ type IServer interface {
 	StartGin()
 	StartMongo(ctx context.Context) error
 	StartFirebase(ctx context.Context) error
-	StartGrpc(ctx context.Context) error
 }
 
 func hash(s string) string {
@@ -63,18 +59,16 @@ func (h *Human) ID() string {
 }
 
 type server struct {
-	db                  *gorm.DB
-	app                 *gin.Engine
-	mongoClient         *mongo.Client
-	mongoCollection     *mongo.Collection
-	studentRepo         repomongo.IStudentRepository
-	bookRepo            repo.IBookRepository
-	firebaseClient      *firestore.Client
-	mongoClientGrpc     *mongo.Client
-	mongoCollectionGrpc *mongo.Collection
+	db              *gorm.DB
+	app             *gin.Engine
+	mongoClient     *mongo.Client
+	mongoCollection *mongo.Collection
+	studentRepo     repomongo.IStudentRepository
+	bookRepo        repo.IBookRepository
+	firebaseClient  *firestore.Client
 }
 
-func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection, firebaseClient *firestore.Client, mongoClientGrpc *mongo.Client, mongoCollectionGrpc *mongo.Collection) IServer {
+func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Collection, firebaseClient *firestore.Client) IServer {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 
@@ -84,15 +78,13 @@ func NewServer(db *gorm.DB, mongoClient *mongo.Client, mongoCollection *mongo.Co
 	bookRepo := repo.NewGormStore(db)
 
 	return &server{
-		app:                 app,
-		db:                  db,
-		mongoClient:         mongoClient,
-		mongoCollection:     mongoCollection,
-		studentRepo:         studentRepo,
-		bookRepo:            bookRepo,
-		firebaseClient:      firebaseClient,
-		mongoClientGrpc:     mongoClientGrpc,
-		mongoCollectionGrpc: mongoCollectionGrpc,
+		app:             app,
+		db:              db,
+		mongoClient:     mongoClient,
+		mongoCollection: mongoCollection,
+		studentRepo:     studentRepo,
+		bookRepo:        bookRepo,
+		firebaseClient:  firebaseClient,
 	}
 }
 
@@ -101,7 +93,7 @@ func (s *server) StartGin() {
 	modules := InitModule(api, s, s.firebaseClient)
 	modules.BookModule()
 	port := ":8080"
-	log.Printf("Server is starting on %v", port)
+	log.Printf("Server Gin is starting on %v", port)
 
 	//book, err := generator.GenerateBooks()
 	//if err != nil {
@@ -174,32 +166,5 @@ func (s *server) StartFirebase(ctx context.Context) error {
 	}
 
 	log.Println("Firestore has been started successfully")
-	return nil
-}
-
-type Server struct {
-	pb.SchoolServiceServer
-	mongoClientGrpc     *mongo.Client
-	mongoCollectionGrpc *mongo.Collection
-}
-
-var addr string = "0.0.0.0:50051"
-
-func (s *server) StartGrpc(ctx context.Context) error {
-	g := grpc.NewServer()
-	pb.RegisterSchoolServiceServer(g, &Server{
-		mongoClientGrpc:     s.mongoClientGrpc,
-		mongoCollectionGrpc: s.mongoCollectionGrpc,
-	})
-	lis, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
-	}
-
-	if err := g.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v\n", err)
-	}
-
-	log.Println("gRPC client connected successfully")
 	return nil
 }

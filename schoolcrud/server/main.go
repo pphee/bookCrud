@@ -58,7 +58,7 @@
 //	}
 //}
 
-package servermodel
+package main
 
 import (
 	"context"
